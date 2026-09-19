@@ -10,6 +10,7 @@ import EligibilityExplanation from './pages/EligibilityExplanation'
 import DocumentCenter from './pages/DocumentCenter'
 import ApplicationGuide from './pages/ApplicationGuide'
 import Dashboard from './pages/Dashboard'
+import WakeUpBanner from './components/WakeUpBanner'
 import { getProfile } from './services/api'
 
 // Global session context
@@ -85,6 +86,7 @@ export default function App() {
       <BrowserRouter basename={import.meta.env.BASE_URL}>
         <div className="min-h-screen bg-gray-50 flex flex-col">
           <Navbar />
+          <WakeUpBanner />
           <main className="flex-grow">
             <ErrorBoundary>
               <Routes>

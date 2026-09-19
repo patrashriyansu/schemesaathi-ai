@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Filter, Search, UserCheck } from 'lucide-react'
 import { getSchemes } from '../services/api'
 import { useSession } from '../App'
@@ -8,14 +9,18 @@ import ErrorMessage from '../components/ErrorMessage'
 
 export default function SchemeRecommendations() {
   const { sessionId, hasProfile } = useSession()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const initialCategory = searchParams.get('category') || ''
+  const initialSearch = searchParams.get('search') || searchParams.get('query') || ''
+
   const [schemes, setSchemes] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   
   const [filters, setFilters] = useState({
-    category: '',
+    category: initialCategory,
     government_level: '',
-    search: '',
+    search: initialSearch,
     useProfileMatch: hasProfile
   })
 
@@ -37,6 +42,18 @@ export default function SchemeRecommendations() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    const cat = searchParams.get('category')
+    const q = searchParams.get('search') || searchParams.get('query')
+    if (cat !== null || q !== null) {
+      setFilters(prev => ({
+        ...prev,
+        category: cat !== null ? cat : prev.category,
+        search: q !== null ? q : prev.search
+      }))
+    }
+  }, [searchParams])
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -82,11 +99,13 @@ export default function SchemeRecommendations() {
           <div>
             <select name="category" value={filters.category} onChange={handleFilterChange} className="input-field">
               <option value="">All Categories</option>
-              <option value="Education">Education</option>
-              <option value="Agriculture">Agriculture</option>
-              <option value="Health">Health</option>
-              <option value="Employment">Employment</option>
+              <option value="Agriculture">Agriculture & Farmers</option>
+              <option value="Education">Education & Scholarships</option>
+              <option value="Healthcare">Healthcare & Insurance</option>
+              <option value="Women Empowerment">Women Empowerment</option>
               <option value="Housing">Housing</option>
+              <option value="Social Security">Social Security & Pension</option>
+              <option value="Business/Employment">Business & Employment</option>
             </select>
           </div>
           

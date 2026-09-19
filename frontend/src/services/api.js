@@ -15,13 +15,29 @@ const baseURL = import.meta.env.VITE_API_URL
 
 const api = axios.create({
   baseURL,
-  timeout: 30000,
+  // Allow up to 60 seconds to accommodate Render free-tier cold starts
+  timeout: 60000,
   headers: { 'Content-Type': 'application/json' }
 })
 
+// Add retry interceptor for Render cold-start resilience
 api.interceptors.response.use(
   res => res,
-  err => {
+  async err => {
+    const config = err.config
+    if (!config) return Promise.reject(err)
+
+    // Retry up to 2 times on cold start errors (502, 503, 504, timeout, or network error)
+    config.__retryCount = config.__retryCount || 0
+    const isColdStart = !err.response || [502, 503, 504].includes(err.response?.status) || err.code === 'ECONNABORTED'
+
+    if (isColdStart && config.__retryCount < 2) {
+      config.__retryCount += 1
+      const backoffDelay = config.__retryCount * 3000 // wait 3s, then 6s
+      await new Promise(resolve => setTimeout(resolve, backoffDelay))
+      return api(config)
+    }
+
     const raw = err.response?.data?.detail || err.response?.data?.error || err.message || 'An unexpected error occurred.'
     const message = typeof raw === 'string' ? raw : Array.isArray(raw) ? raw.map(e => e.msg || JSON.stringify(e)).join(', ') : JSON.stringify(raw)
     return Promise.reject(new Error(message))
@@ -60,7 +76,7 @@ export const startApplication = (sessionId, schemeId) =>
 export const updateApplicationStatus = (appId, status, refNum) =>
   api.put(`/applications/${appId}/status`, null, { params: { status, reference_number: refNum } })
 
-// Health
-export const getHealth = () => api.get('/health')
+// Health check with short timeout for quick pinging
+export const getHealth = () => api.get('/health', { timeout: 10000 })
 
 export default api
