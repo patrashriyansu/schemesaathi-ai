@@ -1,10 +1,17 @@
 import axios from 'axios'
 
-// In development, Vite proxies /api → localhost:8000
-// In production (Vercel), set VITE_API_URL to the Render backend URL
+// Render backend URL — hardcoded production fallback
+const RENDER_BACKEND = 'https://schemesaathi-backend-9r0z.onrender.com'
+
+// Priority: VITE_API_URL env var → Render backend (prod) → /api proxy (local dev only)
+const isLocalDev = typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+
 const baseURL = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL}/api`
-  : '/api'
+  : isLocalDev
+    ? '/api'
+    : `${RENDER_BACKEND}/api`
 
 const api = axios.create({
   baseURL,
