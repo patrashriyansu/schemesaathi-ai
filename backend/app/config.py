@@ -3,7 +3,7 @@ from functools import lru_cache
 import os
 
 class Settings(BaseSettings):
-    database_url: str = "sqlite:///./schemesaathi.db"
+    database_url: str = "sqlite:///./schemesaathi.db"  # overridden by Render's DATABASE_URL in production
     aws_region: str = "ap-south-1"
     aws_access_key_id: str = ""
     aws_secret_access_key: str = ""

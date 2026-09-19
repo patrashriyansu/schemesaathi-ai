@@ -10,6 +10,11 @@ Base = declarative_base()
 def get_engine():
     settings = get_settings()
     db_url = settings.database_url
+
+    # Render PostgreSQL returns "postgres://" but SQLAlchemy requires "postgresql://"
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+
     if db_url.startswith("sqlite"):
         engine = create_engine(
             db_url,
@@ -22,7 +27,13 @@ def get_engine():
             cursor.execute("PRAGMA foreign_keys=ON")
             cursor.close()
     else:
-        engine = create_engine(db_url, echo=False, pool_pre_ping=True)
+        engine = create_engine(
+            db_url,
+            echo=False,
+            pool_pre_ping=True,
+            pool_size=5,
+            max_overflow=10
+        )
     return engine
 
 engine = get_engine()
