@@ -1,4 +1,4 @@
-﻿name: Deploy Frontend to GitHub Pages
+name: Deploy Frontend to GitHub Pages
 
 on:
   push:
@@ -39,6 +39,7 @@ jobs:
         working-directory: frontend
         env:
           VITE_BASE_PATH: /schemesaathi-ai/
+          VITE_API_URL: https://schemesaathi-backend-9r0z.onrender.com
         run: npm run build
 
       - name: Setup Pages
